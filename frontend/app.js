@@ -136,24 +136,28 @@ async function fetchTelemetry() {
             
             // Stale tables count
             let staleCount = 0;
+            let freshnessTablesList = [];
             try {
                 const freshnessRes = await fetch(`${API_BASE}/freshness/status`);
                 const freshnessData = await freshnessRes.json();
-                staleCount = Array.isArray(freshnessData.data) 
-                    ? freshnessData.data.filter(t => t.freshness_status === 'STALE').length 
-                    : (freshnessData.data?.tables?.filter(t => t.freshness_status === 'STALE').length || 0);
+                freshnessTablesList = Array.isArray(freshnessData.data)
+                    ? freshnessData.data
+                    : (freshnessData.data?.tables || []);
+                staleCount = freshnessTablesList.filter(t => t.freshness_status === 'STALE').length;
             } catch (e) {
                 console.error("Freshness fetch failed", e);
             }
 
             // Anomalies count
             let anomalyCount = 0;
+            let volumeTablesList = [];
             try {
                 const volumeRes = await fetch(`${API_BASE}/volume/status`);
                 const volumeData = await volumeRes.json();
-                anomalyCount = Array.isArray(volumeData.data)
-                    ? volumeData.data.filter(t => t.anomaly_status === 'ANOMALY').length
-                    : (volumeData.data?.tables?.filter(t => t.anomaly_status === 'ANOMALY').length || 0);
+                volumeTablesList = Array.isArray(volumeData.data)
+                    ? volumeData.data
+                    : (volumeData.data?.tables || []);
+                anomalyCount = volumeTablesList.filter(t => t.anomaly_status === 'ANOMALY').length;
             } catch (e) {
                 console.error("Volume fetch failed", e);
             }
@@ -164,14 +168,75 @@ async function fetchTelemetry() {
             volAnomaliesVal.textContent = anomalyCount;
             totalRunsVal.textContent = totalRuns;
 
-            // Render Donut Chart
+            // Render Donut Chart & Grafana Status tables
             updateDonutChart(successRate, successRuns, failedRuns);
+            renderFreshnessTable(freshnessTablesList);
+            renderVolumeTable(volumeTablesList);
         }
     } catch (err) {
         console.error("Failed to fetch telemetry overview", err);
         setBackendConnected(false);
     }
 }
+
+function renderFreshnessTable(list) {
+    const body = document.getElementById("freshness-table-body");
+    body.innerHTML = "";
+    if (list.length === 0) {
+        body.innerHTML = `<tr><td colspan="3" class="empty-state">No freshness SLA metrics loaded</td></tr>`;
+        return;
+    }
+    list.forEach(t => {
+        const isStale = t.freshness_status === "STALE";
+        const badgeClass = isStale ? "badge-red" : "badge-green";
+        const dotClass = isStale ? "red" : "green";
+        const statusText = isStale ? "STALE" : "UP-TO-DATE";
+        const lastUpdated = t.last_updated_at ? new Date(t.last_updated_at).toLocaleString() : 'N/A';
+        
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><strong>${t.table_name}</strong></td>
+            <td>
+                <span class="status-badge ${badgeClass}">
+                    <span class="status-dot ${dotClass}"></span>
+                    ${statusText}
+                </span>
+            </td>
+            <td>${lastUpdated}</td>
+        `;
+        body.appendChild(row);
+    });
+}
+
+function renderVolumeTable(list) {
+    const body = document.getElementById("volume-table-body");
+    body.innerHTML = "";
+    if (list.length === 0) {
+        body.innerHTML = `<tr><td colspan="3" class="empty-state">No volume drift metrics loaded</td></tr>`;
+        return;
+    }
+    list.forEach(t => {
+        const isAnomaly = t.anomaly_status === "ANOMALY";
+        const badgeClass = isAnomaly ? "badge-red" : "badge-green";
+        const dotClass = isAnomaly ? "red" : "green";
+        const statusText = isAnomaly ? "ANOMALY" : "NORMAL";
+        const rowCount = t.current_row_count !== undefined ? t.current_row_count.toLocaleString() : '0';
+        
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><strong>${t.table_name}</strong></td>
+            <td>
+                <span class="status-badge ${badgeClass}">
+                    <span class="status-dot ${dotClass}"></span>
+                    ${statusText}
+                </span>
+            </td>
+            <td>${rowCount} rows</td>
+        `;
+        body.appendChild(row);
+    });
+}
+
 
 function updateDonutChart(successRate, successRuns, failedRuns) {
     donutPct.textContent = `${Math.round(successRate)}%`;

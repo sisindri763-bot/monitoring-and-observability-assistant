@@ -152,6 +152,46 @@
                         <div class="alerts-list" id="webhook-list">
                             <div class="empty-state">No webhooks registered</div>
                         </div>
+                </div>
+
+                <!-- Grafana-like Telemetry Status Panels Grid -->
+                <div class="grafana-grid">
+                    <!-- Freshness SLA Panel -->
+                    <div class="panel-card status-panel-card">
+                        <h3><i data-lucide="clock" class="section-icon"></i> Freshness Status (SLA)</h3>
+                        <div class="table-wrapper">
+                            <table class="status-table">
+                                <thead>
+                                    <tr>
+                                        <th>Table Name</th>
+                                        <th>SLA Status</th>
+                                        <th>Last Read/Write</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="freshness-table-body">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Volume Anomalies Panel -->
+                    <div class="panel-card status-panel-card">
+                        <h3><i data-lucide="database" class="section-icon"></i> Volume Drift & Row Counts</h3>
+                        <div class="table-wrapper">
+                            <table class="status-table">
+                                <thead>
+                                    <tr>
+                                        <th>Table Name</th>
+                                        <th>Drift Status</th>
+                                        <th>Current Rows</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="volume-table-body">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
