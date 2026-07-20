@@ -143,7 +143,7 @@ async function fetchTelemetry() {
                 freshnessTablesList = Array.isArray(freshnessData.data)
                     ? freshnessData.data
                     : (freshnessData.data?.tables || []);
-                staleCount = freshnessTablesList.filter(t => t.freshness_status === 'STALE').length;
+                staleCount = freshnessTablesList.filter(t => t.status === 'ANOMALY').length;
             } catch (e) {
                 console.error("Freshness fetch failed", e);
             }
@@ -157,7 +157,7 @@ async function fetchTelemetry() {
                 volumeTablesList = Array.isArray(volumeData.data)
                     ? volumeData.data
                     : (volumeData.data?.tables || []);
-                anomalyCount = volumeTablesList.filter(t => t.anomaly_status === 'ANOMALY').length;
+                anomalyCount = volumeTablesList.filter(t => t.status === 'ANOMALY').length;
             } catch (e) {
                 console.error("Volume fetch failed", e);
             }
@@ -187,11 +187,11 @@ function renderFreshnessTable(list) {
         return;
     }
     list.forEach(t => {
-        const isStale = t.freshness_status === "STALE";
+        const isStale = t.status === "ANOMALY";
         const badgeClass = isStale ? "badge-red" : "badge-green";
         const dotClass = isStale ? "red" : "green";
         const statusText = isStale ? "STALE" : "UP-TO-DATE";
-        const lastUpdated = t.last_updated_at ? new Date(t.last_updated_at).toLocaleString() : 'N/A';
+        const lastUpdated = t.last_updated ? new Date(t.last_updated).toLocaleString() : 'N/A';
         
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -216,11 +216,11 @@ function renderVolumeTable(list) {
         return;
     }
     list.forEach(t => {
-        const isAnomaly = t.anomaly_status === "ANOMALY";
+        const isAnomaly = t.status === "ANOMALY";
         const badgeClass = isAnomaly ? "badge-red" : "badge-green";
         const dotClass = isAnomaly ? "red" : "green";
         const statusText = isAnomaly ? "ANOMALY" : "NORMAL";
-        const rowCount = t.current_row_count !== undefined ? t.current_row_count.toLocaleString() : '0';
+        const rowCount = t.row_count !== undefined ? t.row_count.toLocaleString() : '0';
         
         const row = document.createElement("tr");
         row.innerHTML = `
