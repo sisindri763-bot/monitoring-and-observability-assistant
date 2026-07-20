@@ -129,10 +129,10 @@ async function fetchTelemetry() {
 
         if (result.success && result.data) {
             const data = result.data;
-            const totalRuns = parseInt(data.total_runs || 0);
-            const failedRuns = parseInt(data.failed_runs || 0);
-            const successRuns = totalRuns - failedRuns;
-            const successRate = totalRuns > 0 ? (successRuns / totalRuns) * 100 : 100.0;
+            const totalRuns = parseInt(data.total_executions || 0);
+            const failedRuns = parseInt(data.failed_count || 0);
+            const successRuns = parseInt(data.success_count || 0);
+            const successRate = totalRuns > 0 ? (successRuns / totalRuns) * 100 : 0.0;
             
             // Stale tables count
             let staleCount = 0;
@@ -198,22 +198,50 @@ function updateDonutChart(successRate, successRuns, failedRuns) {
 
 async function fetchPipelineSnapshots() {
     try {
-        const response = await fetch(`${API_BASE}/monitoring/dashboard/summary`);
+        const response = await fetch(`${API_BASE}/monitoring/pipelines?limit=200`);
         const result = await response.json();
         
         pipelineSnapshots.innerHTML = "";
 
-        if (result.success && result.data && Array.isArray(result.data.pipelines)) {
-            const list = result.data.pipelines;
-            if (list.length === 0) {
-                pipelineSnapshots.innerHTML = `<div class="empty-state">No pipeline status configuration loaded</div>`;
+        if (result.success && Array.isArray(result.data)) {
+            const logs = result.data;
+            if (logs.length === 0) {
+                pipelineSnapshots.innerHTML = `<div class="empty-state">No pipeline data found</div>`;
                 return;
             }
 
+            // Group logs dynamically by pipeline name to compile counts
+            const pipelinesMap = {};
+            logs.forEach(log => {
+                const name = log.pipeline_name;
+                if (!pipelinesMap[name]) {
+                    pipelinesMap[name] = {
+                        pipeline_name: name,
+                        total_runs: 0,
+                        success_runs: 0,
+                        failed_runs: 0,
+                        last_run_timestamp: null
+                    };
+                }
+                const p = pipelinesMap[name];
+                p.total_runs += 1;
+                if (log.status === "SUCCESS") p.success_runs += 1;
+                else if (log.status === "FAILED") p.failed_runs += 1;
+                
+                // Compare timestamps
+                if (log.start_time) {
+                    const logTime = new Date(log.start_time).getTime();
+                    if (!p.last_run_timestamp || logTime > new Date(p.last_run_timestamp).getTime()) {
+                        p.last_run_timestamp = log.start_time;
+                    }
+                }
+            });
+
+            const list = Object.values(pipelinesMap);
             list.forEach(p => {
-                const total = parseInt(p.total_runs || 0);
-                const failed = parseInt(p.failed_runs || 0);
-                const success = total - failed;
+                const total = p.total_runs;
+                const success = p.success_runs;
+                const failed = p.failed_runs;
                 const rate = total > 0 ? (success / total) * 100 : 100.0;
                 
                 let badgeClass = "rate-success";
@@ -464,7 +492,7 @@ function clearConversation() {
             <div class="message assistant-message animate-fade-in">
                 <div class="message-avatar"><i data-lucide="bot"></i></div>
                 <div class="message-content">
-                    <p>Hello Sasi! How can I help you today?</p>
+                    <p>Hello! I'm Tusk, your ETL Observability Copilot. How can I help you today?</p>
                 </div>
             </div>
         `;
