@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tusk Copilot — ETL Observability Dashboard</title>
+    <title>Tusk — ETL Observability Platform & Copilot</title>
     
-    <!-- Outfit & Inter Fonts -->
+    <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,57 +19,82 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Background decorative glow spots -->
+    <div class="app-layout">
+        <!-- Background decorative glows -->
         <div class="glow-spot glow-1"></div>
         <div class="glow-spot glow-2"></div>
         <div class="glow-spot glow-3"></div>
 
-        <!-- Header -->
-        <header class="app-header">
-            <div class="brand">
-                <div class="logo-container">
+        <!-- Left Navigation Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-box">
                     <i data-lucide="activity" class="logo-icon"></i>
                 </div>
                 <div>
-                    <h1>TUSK</h1>
-                    <p class="tagline">ETL Pipeline Observability & Copilot</p>
+                    <h2>TUSK</h2>
+                    <span class="version-badge">v1.1.0</span>
                 </div>
             </div>
-            <div class="header-status">
-                <span class="pulse-indicator healthy" id="api-status-dot"></span>
-                <span id="api-status-text">Connecting...</span>
-            </div>
-        </header>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="tab-overview">
+                    <i data-lucide="bar-chart-2"></i>
+                    <span>Overview</span>
+                </button>
+                <button class="nav-item" data-tab="tab-pipelines">
+                    <i data-lucide="git-branch"></i>
+                    <span>Pipelines</span>
+                </button>
+                <button class="nav-item" data-tab="tab-copilot">
+                    <i data-lucide="message-square"></i>
+                    <span>AI Copilot</span>
+                </button>
+            </nav>
 
-        <main class="app-content">
-            <!-- Left Panel: Observability Dashboard -->
-            <section class="dashboard-panel">
-                <div class="panel-card system-health-card">
-                    <h3>System Health</h3>
-                    <div class="health-display">
-                        <div class="health-ring-container">
-                            <svg class="health-svg" viewBox="0 0 100 100">
-                                <circle class="ring-bg" cx="50" cy="50" r="40"></circle>
-                                <circle class="ring-fg" cx="50" cy="50" r="40" id="health-ring"></circle>
-                            </svg>
-                            <div class="health-value-box">
-                                <span class="health-percent" id="health-pct">--</span>
-                                <span class="health-label" id="health-state">LOADING</span>
-                            </div>
+            <div class="sidebar-footer">
+                <div class="connection-status-widget">
+                    <span class="pulse-indicator healthy" id="api-status-dot"></span>
+                    <span id="api-status-text">Backend Connected</span>
+                </div>
+                <div class="footer-copyright">© 2026 Tusk Systems</div>
+            </div>
+        </aside>
+
+        <!-- Right Main Content Panel -->
+        <main class="main-content">
+            
+            <!-- PAGE 1: OVERVIEW -->
+            <div class="tab-pane active animate-fade-in" id="tab-overview">
+                <div class="page-header">
+                    <div>
+                        <h2>Dashboard Overview</h2>
+                        <p class="subtitle">System health telemetry and configurations snapshot</p>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-refresh-overview">
+                        <i data-lucide="refresh-cw"></i> Refresh Overview
+                    </button>
+                </div>
+
+                <!-- Scorecard Cards Row -->
+                <div class="scorecard-row">
+                    <div class="metric-card">
+                        <div class="metric-icon-box info-theme">
+                            <i data-lucide="play-circle"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-value" id="total-runs-val">--</span>
+                            <span class="metric-label">Total Pipeline Runs</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Telemetry Metrics Grid -->
-                <div class="metrics-grid">
+                    
                     <div class="metric-card">
                         <div class="metric-icon-box success-theme">
                             <i data-lucide="check-circle-2"></i>
                         </div>
                         <div class="metric-info">
                             <span class="metric-value" id="success-rate-val">--</span>
-                            <span class="metric-label">Success Rate</span>
+                            <span class="metric-label">Avg Success Rate</span>
                         </div>
                     </div>
 
@@ -92,34 +117,86 @@
                             <span class="metric-label">Volume Anomalies</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="metric-card">
-                        <div class="metric-icon-box info-theme">
-                            <i data-lucide="play-circle"></i>
+                <!-- Charts and Webhooks split section -->
+                <div class="overview-grid">
+                    <!-- Left: Overall run ratio SVG chart -->
+                    <div class="panel-card chart-card">
+                        <h3>Overall Execution Ratio</h3>
+                        <div class="donut-chart-container">
+                            <svg class="donut-svg" viewBox="0 0 100 100">
+                                <circle class="donut-ring-bg" cx="50" cy="50" r="35"></circle>
+                                <circle class="donut-segment success-segment" cx="50" cy="50" r="35" id="donut-success"></circle>
+                                <circle class="donut-segment error-segment" cx="50" cy="50" r="35" id="donut-failed"></circle>
+                            </svg>
+                            <div class="donut-label-box">
+                                <span class="donut-percentage" id="donut-pct">--</span>
+                                <span class="donut-sublabel">Succeeded</span>
+                            </div>
                         </div>
-                        <div class="metric-info">
-                            <span class="metric-value" id="total-runs-val">--</span>
-                            <span class="metric-label">Total Runs</span>
+                        <div class="donut-legend">
+                            <div class="legend-item"><span class="legend-dot success-bg"></span> Success: <strong id="donut-success-cnt">--</strong></div>
+                            <div class="legend-item"><span class="legend-dot error-bg"></span> Failed: <strong id="donut-failed-cnt">--</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Webhook Receivers -->
+                    <div class="panel-card webhooks-card">
+                        <div class="card-header">
+                            <h3><i data-lucide="bell" class="section-icon"></i> Alert Receivers</h3>
+                            <button class="btn btn-secondary btn-icon-only" id="btn-refresh-alerts" title="Refresh Webhooks">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                        </div>
+                        <div class="alerts-list" id="webhook-list">
+                            <div class="empty-state">No webhooks registered</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Alert Channels Config -->
-                <div class="panel-card alerts-card">
+            <!-- PAGE 2: PIPELINES -->
+            <div class="tab-pane animate-fade-in" id="tab-pipelines">
+                <div class="page-header">
+                    <div>
+                        <h2>Pipelines & Lineage Map</h2>
+                        <p class="subtitle">System catalog, status rates, and dependency flow diagram</p>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-refresh-pipelines">
+                        <i data-lucide="refresh-cw"></i> Refresh Pipelines
+                    </button>
+                </div>
+
+                <!-- Pipeline Snapshot List -->
+                <div class="panel-card pipeline-list-card">
+                    <h3>Pipeline Status Snapshot</h3>
+                    <div class="pipeline-snapshot-container" id="pipeline-snapshots">
+                        <!-- Dynamic snapshot entries loaded here -->
+                        <div class="empty-state">Loading pipeline snapshots...</div>
+                    </div>
+                </div>
+
+                <!-- Lineage flowchart area -->
+                <div class="panel-card lineage-card">
                     <div class="card-header">
-                        <h3><i data-lucide="bell" class="section-icon"></i> Alert Receivers</h3>
-                        <button class="btn btn-secondary btn-icon-only" id="btn-refresh-alerts" title="Refresh list">
-                            <i data-lucide="refresh-cw"></i>
+                        <h3><i data-lucide="git-branch" class="section-icon"></i> Interactive Lineage Map</h3>
+                        <button class="btn btn-secondary btn-sm" id="btn-load-lineage">
+                            <i data-lucide="eye"></i> Render Flow
                         </button>
                     </div>
-                    <div class="alerts-list" id="webhook-list">
-                        <div class="empty-state">No webhooks registered</div>
+                    <div class="lineage-canvas-container">
+                        <div class="lineage-placeholder-box" id="lineage-placeholder">
+                            <i data-lucide="git-merge" class="placeholder-icon"></i>
+                            <p>Click "Render Flow" to generate source-to-target schema mapping</p>
+                        </div>
+                        <div class="mermaid-target" id="lineage-mermaid-flow"></div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- Right Panel: Tusk Copilot AI Chat -->
-            <section class="chat-panel">
+            <!-- PAGE 3: AI COPILOT CHAT -->
+            <div class="tab-pane animate-fade-in" id="tab-copilot">
                 <div class="chat-container">
                     <div class="chat-header">
                         <div class="copilot-identity">
@@ -131,22 +208,22 @@
                                 <p class="status-msg">Online & Context Ready</p>
                             </div>
                         </div>
-                        <button class="btn btn-secondary" id="btn-clear-chat" title="Clear thread memory">
+                        <button class="btn btn-secondary" id="btn-clear-chat">
                             <i data-lucide="trash-2"></i> Clear Chat
                         </button>
                     </div>
 
-                    <!-- Messages list -->
+                    <!-- Chat Messages Pane -->
                     <div class="chat-messages" id="chat-messages-container">
                         <div class="message assistant-message animate-fade-in">
                             <div class="message-avatar"><i data-lucide="bot"></i></div>
                             <div class="message-content">
-                                <p>Hello! I am **Tusk**, your ETL Observability Copilot. I can help you debug pipeline failures, verify tables, check freshness trends, or manage Slack alert webhooks. Try clicking one of the questions below or ask me anything!</p>
+                                <p>Hello Sasi! How can I help you today?</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Suggestion Chips -->
+                    <!-- Suggestion Chips footer -->
                     <div class="suggestion-chips-container">
                         <button class="suggestion-chip">
                             <i data-lucide="heart-pulse"></i> Is the system healthy?
@@ -162,20 +239,21 @@
                         </button>
                     </div>
 
-                    <!-- Input Footer -->
+                    <!-- Chat Input field -->
                     <div class="chat-input-area">
                         <textarea class="chat-textarea" id="chat-input-box" placeholder="Ask Tusk about failed runs, schemas, lineage or alert settings..." rows="1"></textarea>
                         <button class="btn btn-primary" id="btn-send-message">
-                            <span class="btn-text">Send</span>
+                            <span>Send</span>
                             <i data-lucide="send"></i>
                         </button>
                     </div>
                 </div>
-            </section>
+            </div>
+
         </main>
     </div>
 
-    <!-- Main Logic Script -->
+    <!-- Script assets -->
     <script src="app.js"></script>
 </body>
 </html>

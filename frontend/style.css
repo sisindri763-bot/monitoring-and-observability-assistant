@@ -1,18 +1,18 @@
 /* ==============================================================================
-   Tusk Observability & Copilot Styles - Glassmorphic Cyberpunk Theme
+   Tusk Observability Platform & SPA Stylesheet - Professional Layout
    ============================================================================== */
 
 :root {
     --bg-main: #0B0F19;
-    --bg-card: rgba(17, 24, 39, 0.65);
+    --bg-card: rgba(17, 24, 39, 0.6);
     --border-glass: rgba(255, 255, 255, 0.08);
     --text-primary: #F3F4F6;
     --text-secondary: #9CA3AF;
     --text-muted: #6B7280;
     
     /* Branding Colors */
-    --accent: #6366F1;
-    --accent-glow: rgba(99, 102, 241, 0.15);
+    --accent: #8B5CF6; /* Unique purple accent */
+    --accent-glow: rgba(139, 92, 246, 0.15);
     --success: #10B981;
     --success-glow: rgba(16, 185, 129, 0.1);
     --warning: #F59E0B;
@@ -39,7 +39,7 @@ body {
     color: var(--text-primary);
     font-family: var(--font-body);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
 }
 
@@ -50,11 +50,11 @@ body {
     filter: blur(120px);
     z-index: 0;
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.35;
 }
 .glow-1 {
-    width: 400px;
-    height: 400px;
+    width: 450px;
+    height: 450px;
     background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
     top: -100px;
     left: -100px;
@@ -70,52 +70,50 @@ body {
     width: 350px;
     height: 350px;
     background: radial-gradient(circle, var(--error) 0%, transparent 80%);
-    top: 30%;
+    top: 25%;
     left: 45%;
 }
 
-/* App Container Layout */
-.app-container {
+/* Master SPA Flex Layout */
+.app-layout {
     position: relative;
     z-index: 1;
     display: flex;
-    flex-direction: column;
     height: 100vh;
-    padding: 1.5rem;
-    max-width: 1600px;
-    margin: 0 auto;
+    width: 100vw;
+    overflow: hidden;
 }
 
-/* Header Styles */
-.app-header {
+/* Left Sidebar Navigation */
+.sidebar {
+    width: 280px;
+    background: rgba(11, 15, 25, 0.85);
+    border-right: 1px solid var(--border-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-glass);
-    border-radius: 16px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    margin-bottom: 1.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    flex-direction: column;
+    padding: 1.75rem 1.25rem;
+    flex-shrink: 0;
 }
 
-.brand {
+.sidebar-brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    padding-left: 0.5rem;
 }
 
-.logo-container {
-    width: 40px;
-    height: 40px;
+.logo-box {
+    width: 42px;
+    height: 42px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--info) 100%);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
 }
 
 .logo-icon {
@@ -124,34 +122,94 @@ body {
     color: white;
 }
 
-.brand h1 {
+.sidebar-brand h2 {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 800;
     letter-spacing: 2px;
-    background: linear-gradient(to right, #FFFFFF, #C7D2FE);
+    background: linear-gradient(to right, #FFFFFF, #E0E7FF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.tagline {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+.version-badge {
+    font-size: 0.65rem;
+    color: var(--accent);
+    font-weight: 700;
     letter-spacing: 0.5px;
+    background: var(--accent-glow);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
-.header-status {
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.nav-item {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.85rem 1.2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    text-align: left;
+    transition: var(--transition-smooth);
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+}
+
+.nav-item.active {
+    background: var(--accent-glow);
+    color: white;
+    border-color: rgba(139, 92, 246, 0.25);
+    box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.1);
+}
+
+.nav-item i {
+    width: 18px;
+    height: 18px;
+    transition: var(--transition-smooth);
+}
+
+.nav-item.active i {
+    color: var(--accent);
+    filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-glass);
+}
+
+.connection-status-widget {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-secondary);
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-glass);
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 .pulse-indicator {
@@ -176,30 +234,62 @@ body {
     100% { transform: scale(0.9); opacity: 0.6; }
 }
 
-/* Main Layout Grid */
-.app-content {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 1.5rem;
-    flex: 1;
-    min-height: 0; /* Important for flex scrolling behavior */
+.footer-copyright {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
 }
 
-/* Cards & Panel Styles */
-.dashboard-panel {
+/* Right Main Content Pane */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
     min-height: 0;
 }
 
+.tab-pane {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+
+/* Page Headers */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.page-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+}
+
+/* Cards Design System */
 .panel-card {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
     border-radius: 16px;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    padding: 1.25rem;
+    padding: 1.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
@@ -207,7 +297,7 @@ body {
     font-family: var(--font-heading);
     font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -219,52 +309,118 @@ body {
     color: var(--accent);
 }
 
-/* System Health Card & Circular SVG Ring */
-.system-health-card {
+/* Metrics Dashboard Cards Grid */
+.scorecard-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+
+.metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card:hover {
+    border-color: rgba(139, 92, 246, 0.25);
+    transform: translateY(-2px);
+}
+
+.metric-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metric-icon-box i {
+    width: 20px;
+    height: 20px;
+}
+
+.metric-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-value {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Split Column Grid (Overview Panel) */
+.overview-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 1.5rem;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Donut Chart SVG Card */
+.chart-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1.5rem;
 }
 
-.health-display {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.donut-chart-container {
     position: relative;
     width: 160px;
     height: 160px;
+    margin: 1rem 0;
 }
 
-.health-ring-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.health-svg {
+.donut-svg {
     transform: rotate(-90deg);
     width: 100%;
     height: 100%;
 }
 
-.ring-bg {
+.donut-ring-bg {
     fill: none;
     stroke: rgba(255, 255, 255, 0.03);
-    stroke-width: 8;
+    stroke-width: 9;
 }
 
-.ring-fg {
+.donut-segment {
     fill: none;
-    stroke: var(--success);
-    stroke-width: 8;
+    stroke-width: 9;
     stroke-linecap: round;
-    stroke-dasharray: 251.2; /* 2 * PI * r (r=40) */
-    stroke-dashoffset: 251.2;
-    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: stroke-dashoffset 1s ease-in-out;
 }
 
-.health-value-box {
+.success-segment {
+    stroke: var(--success);
+    stroke-dasharray: 219.9; /* 2 * PI * r (r=35) */
+    stroke-dashoffset: 219.9;
+}
+
+.error-segment {
+    stroke: var(--error);
+    stroke-dasharray: 219.9;
+    stroke-dashoffset: 219.9;
+}
+
+.donut-label-box {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -275,98 +431,49 @@ body {
     text-align: center;
 }
 
-.health-percent {
+.donut-percentage {
     font-family: var(--font-heading);
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 800;
     line-height: 1;
 }
 
-.health-label {
+.donut-sublabel {
     font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    margin-top: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-}
-
-.success-theme {
-    background-color: var(--success-glow);
-    color: var(--success);
-}
-.alert-theme {
-    background-color: var(--warning-glow);
-    color: var(--warning);
-}
-.error-theme {
-    background-color: var(--error-glow);
-    color: var(--error);
-}
-.info-theme {
-    background-color: var(--info-glow);
-    color: var(--info);
-}
-
-/* Metrics Grid Cards */
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.metric-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-glass);
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: var(--transition-smooth);
-}
-
-.metric-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-}
-
-.metric-icon-box {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.metric-icon-box i {
-    width: 18px;
-    height: 18px;
-}
-
-.metric-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.metric-value {
-    font-family: var(--font-heading);
-    font-size: 1.2rem;
-    font-weight: 700;
-}
-
-.metric-label {
-    font-size: 0.7rem;
     color: var(--text-secondary);
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.15rem;
 }
 
-/* Alerts Registry Widget */
-.alerts-card {
-    flex: 1;
+.donut-legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.legend-item {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.success-bg { background-color: var(--success); }
+.error-bg { background-color: var(--error); }
+
+/* Alerts Configuration Card */
+.webhooks-card {
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -377,6 +484,7 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    margin-bottom: 1rem;
 }
 
 .alerts-list {
@@ -385,22 +493,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding-right: 0.25rem;
-}
-
-.alerts-list::-webkit-scrollbar {
-    width: 4px;
-}
-.alerts-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
 }
 
 .alert-receiver-item {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-glass);
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    padding: 0.85rem 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -409,40 +508,172 @@ body {
 
 .alert-receiver-item:hover {
     background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(139, 92, 246, 0.2);
 }
 
 .alert-receiver-info {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.2rem;
     max-width: 80%;
 }
 
 .alert-receiver-name {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    color: white;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .alert-receiver-type {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
 }
 
-/* Right Panel: Tusk Copilot Chat Assistant */
-.chat-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+/* PAGE 2: PIPELINES SNAPSHOTS */
+.pipeline-list-card {
+    margin-bottom: 1.5rem;
 }
 
+.pipeline-snapshot-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pipeline-snapshot-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 120px 120px 160px 140px;
+    align-items: center;
+    gap: 1.5rem;
+    transition: var(--transition-smooth);
+}
+
+.pipeline-snapshot-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.pipeline-meta h4 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: white;
+}
+
+.pipeline-meta p {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+}
+
+.pipeline-runs-cnt {
+    display: flex;
+    flex-direction: column;
+}
+
+.snapshot-val {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
+}
+
+.snapshot-lbl {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.pipeline-rate-badge {
+    justify-self: start;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+}
+
+.rate-success {
+    background-color: var(--success-glow);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rate-warning {
+    background-color: var(--warning-glow);
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.rate-error {
+    background-color: var(--error-glow);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Lineage Map Canvas Card */
+.lineage-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.lineage-canvas-container {
+    flex: 1;
+    background: #030712;
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: auto;
+    padding: 1.5rem;
+}
+
+.lineage-placeholder-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+}
+
+.placeholder-icon {
+    width: 48px;
+    height: 48px;
+    stroke-width: 1.5;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.lineage-placeholder-box p {
+    font-size: 0.85rem;
+    max-width: 250px;
+}
+
+.mermaid-target {
+    display: none;
+    width: 100%;
+}
+
+.mermaid-target.active {
+    display: block;
+}
+
+/* PAGE 3: FULL SCREEN AI COPILOT CHAT PANEL */
 .chat-container {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
-    border-radius: 16px;
+    border-radius: 20px;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     display: flex;
@@ -456,7 +687,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    padding: 1.25rem 2rem;
     border-bottom: 1px solid var(--border-glass);
     background: rgba(255, 255, 255, 0.01);
 }
@@ -468,8 +699,8 @@ body {
 }
 
 .copilot-identity .avatar {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     background: var(--accent-glow);
     border: 1.5px solid var(--accent);
     border-radius: 12px;
@@ -477,16 +708,17 @@ body {
     align-items: center;
     justify-content: center;
     color: var(--accent);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 .copilot-identity h3 {
     font-family: var(--font-heading);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 600;
 }
 
 .status-msg {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--success);
     font-weight: 600;
     display: flex;
@@ -505,10 +737,10 @@ body {
 .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -519,11 +751,11 @@ body {
     border-radius: 2.5px;
 }
 
-/* Chat Bubbles Styles */
+/* Chat Bubbles */
 .message {
     display: flex;
-    gap: 1rem;
-    max-width: 85%;
+    gap: 1.25rem;
+    max-width: 75%;
     align-self: flex-start;
 }
 
@@ -533,8 +765,8 @@ body {
 }
 
 .message-avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -557,10 +789,10 @@ body {
 .message-content {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
-    padding: 0.85rem 1.1rem;
-    font-size: 0.92rem;
-    line-height: 1.5;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
     color: var(--text-primary);
 }
 
@@ -570,13 +802,13 @@ body {
 
 .user-message .message-content {
     background: var(--accent-glow);
-    border-color: rgba(99, 102, 241, 0.3);
+    border-color: rgba(139, 92, 246, 0.3);
     border-top-right-radius: 2px;
 }
 
-/* Formatting Elements inside bubbles */
+/* Inline Code, Code Block, Mermaid inside message content */
 .message-content p {
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.65rem;
 }
 .message-content p:last-child {
     margin-bottom: 0;
@@ -590,12 +822,12 @@ body {
     color: #F43F5E;
 }
 .message-content pre {
-    background: #060913;
+    background: #050811;
     border: 1px solid var(--border-glass);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    padding: 0.85rem 1.2rem;
     overflow-x: auto;
-    margin: 0.75rem 0;
+    margin: 0.85rem 0;
 }
 .message-content pre code {
     background: none;
@@ -605,32 +837,30 @@ body {
 }
 .message-content h2 {
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    margin: 1rem 0 0.5rem 0;
+    margin: 1.2rem 0 0.5rem 0;
     color: white;
 }
 .message-content h3 {
     font-family: var(--font-heading);
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    margin: 0.75rem 0 0.4rem 0;
+    margin: 0.85rem 0 0.4rem 0;
     color: #E2E8F0;
 }
 .message-content ul, .message-content ol {
-    margin: 0.5rem 0 0.75rem 1.25rem;
+    margin: 0.5rem 0 0.75rem 1.5rem;
 }
 .message-content li {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.35rem;
 }
-
-/* Mermaid SVG chart inside chat bubble */
 .message-content .mermaid {
     background: #030712;
     border: 1px solid var(--border-glass);
     border-radius: 12px;
-    padding: 1.25rem;
-    margin: 1rem 0;
+    padding: 1.5rem;
+    margin: 1.25rem 0;
     overflow-x: auto;
     display: flex;
     justify-content: center;
@@ -639,8 +869,8 @@ body {
 /* Suggestion Chips */
 .suggestion-chips-container {
     display: flex;
-    gap: 0.5rem;
-    padding: 0.5rem 1.5rem;
+    gap: 0.6rem;
+    padding: 0.75rem 2rem;
     overflow-x: auto;
     flex-wrap: nowrap;
     border-top: 1px solid var(--border-glass);
@@ -658,32 +888,32 @@ body {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glass);
     border-radius: 20px;
-    padding: 0.4rem 0.85rem;
-    font-size: 0.78rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     transition: var(--transition-smooth);
 }
 .suggestion-chip:hover {
-    background: rgba(99, 102, 241, 0.08);
+    background: rgba(139, 92, 246, 0.08);
     border-color: var(--accent);
     color: white;
 }
 .suggestion-chip i {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
 }
 
-/* Chat Input Footer Area */
+/* Chat Input Area */
 .chat-input-area {
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    padding: 1.25rem 2rem 2rem 2rem;
     display: flex;
-    gap: 0.75rem;
+    gap: 0.85rem;
     align-items: flex-end;
     background: rgba(255, 255, 255, 0.015);
 }
@@ -692,20 +922,20 @@ body {
     flex: 1;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glass);
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    padding: 0.85rem 1.2rem;
     color: var(--text-primary);
     font-family: var(--font-body);
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     resize: none;
     outline: none;
     max-height: 120px;
-    line-height: 1.4;
+    line-height: 1.5;
     transition: var(--transition-smooth);
 }
 .chat-textarea:focus {
-    border-color: rgba(99, 102, 241, 0.5);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Buttons Styles */
@@ -714,7 +944,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.25rem;
+    padding: 0.65rem 1.25rem;
     border-radius: 10px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -724,13 +954,13 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent) 0%, #4F46E5 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, #7C3AED 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
 }
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
 }
 
 .btn-secondary {
@@ -751,6 +981,12 @@ body {
     border-radius: 8px;
 }
 
+.btn-sm {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+}
+
 .btn i {
     width: 14px;
     height: 14px;
@@ -760,8 +996,9 @@ body {
 .empty-state {
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.8rem;
-    padding: 2rem 0;
+    font-size: 0.85rem;
+    padding: 2.5rem 0;
+    width: 100%;
 }
 
 /* Typing Indicator Animation */
@@ -786,7 +1023,7 @@ body {
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
@@ -794,7 +1031,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Scrollbar adjustment for html element */
+/* Scrollbar customization */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;

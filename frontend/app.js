@@ -1,8 +1,8 @@
 /* ==============================================================================
-   Tusk Frontend Application Logic - Unified Dashboard & Chat Handler
+   Tusk Frontend SPA Client Logic - Multi-Tab Observability Platform
    ============================================================================== */
 
-const API_BASE = "http://127.0.0.1:8000"; // Point directly to the FastAPI backend server
+const API_BASE = "http://127.0.0.1:8000"; // Connect to FastAPI backend CORS host
 
 // Initialize Mermaid.js
 mermaid.initialize({
@@ -14,72 +14,127 @@ mermaid.initialize({
 
 // App State
 let conversationId = localStorage.getItem("tusk_conversation_id") || "";
+let activeTab = "tab-overview";
 
 // DOM Elements Cache
-const healthRing = document.getElementById("health-ring");
-const healthPct = document.getElementById("health-pct");
-const healthState = document.getElementById("health-state");
+const navItems = document.querySelectorAll(".nav-item");
+const tabPanes = document.querySelectorAll(".tab-pane");
+
+const apiStatusDot = document.getElementById("api-status-dot");
+const apiStatusText = document.getElementById("api-status-text");
+
+// Overview Elements
 const successRateVal = document.getElementById("success-rate-val");
 const staleTablesVal = document.getElementById("stale-tables-val");
 const volAnomaliesVal = document.getElementById("vol-anomalies-val");
 const totalRunsVal = document.getElementById("total-runs-val");
-const webhookList = document.getElementById("webhook-list");
-const apiStatusDot = document.getElementById("api-status-dot");
-const apiStatusText = document.getElementById("api-status-text");
 
+const donutPct = document.getElementById("donut-pct");
+const donutSuccess = document.getElementById("donut-success");
+const donutFailed = document.getElementById("donut-failed");
+const donutSuccessCnt = document.getElementById("donut-success-cnt");
+const donutFailedCnt = document.getElementById("donut-failed-cnt");
+
+const webhookList = document.getElementById("webhook-list");
+const btnRefreshOverview = document.getElementById("btn-refresh-overview");
+const btnRefreshAlerts = document.getElementById("btn-refresh-alerts");
+
+// Pipelines Elements
+const pipelineSnapshots = document.getElementById("pipeline-snapshots");
+const btnRefreshPipelines = document.getElementById("btn-refresh-pipelines");
+const btnLoadLineage = document.getElementById("btn-load-lineage");
+const lineagePlaceholder = document.getElementById("lineage-placeholder");
+const lineageMermaidFlow = document.getElementById("lineage-mermaid-flow");
+
+// Chat Elements
 const chatMessages = document.getElementById("chat-messages-container");
 const chatInput = document.getElementById("chat-input-box");
 const btnSend = document.getElementById("btn-send-message");
 const btnClear = document.getElementById("btn-clear-chat");
-const btnRefreshAlerts = document.getElementById("btn-refresh-alerts");
 const suggestionChips = document.querySelectorAll(".suggestion-chip");
 
-// Initialize
+// --- INITIALIZE & ROUTING ---
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Refresh telemetry and icons
-    fetchTelemetry();
-    fetchAlertReceivers();
-    lucide.createIcons();
+    // Navigation Toggles
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const targetTab = item.getAttribute("data-tab");
+            switchTab(targetTab);
+        });
+    });
 
     // Event Listeners
     btnSend.addEventListener("click", sendMessage);
     chatInput.addEventListener("keydown", handleTextareaKey);
     btnClear.addEventListener("click", clearConversation);
+    btnRefreshOverview.addEventListener("click", fetchTelemetry);
     btnRefreshAlerts.addEventListener("click", fetchAlertReceivers);
+    btnRefreshPipelines.addEventListener("click", fetchPipelineSnapshots);
+    btnLoadLineage.addEventListener("click", renderLineageFlow);
 
-    // Suggestion chips handler
+    // Suggestion chips helper
     suggestionChips.forEach(chip => {
         chip.addEventListener("click", () => {
             const queryText = chip.textContent.trim();
+            // Automatically switch to Chat tab
+            switchTab("tab-copilot");
             chatInput.value = queryText;
             sendMessage();
         });
     });
 
-    // Auto-focus chat input
-    chatInput.focus();
+    // Load Initial Data
+    fetchTelemetry();
+    fetchAlertReceivers();
+    fetchPipelineSnapshots();
+    lucide.createIcons();
 });
 
-// --- TELEMETRY MODULE ---
+function switchTab(tabId) {
+    activeTab = tabId;
+    
+    // Update nav active states
+    navItems.forEach(item => {
+        if (item.getAttribute("data-tab") === tabId) {
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+    });
+
+    // Update tab pane visibility
+    tabPanes.forEach(pane => {
+        if (pane.id === tabId) {
+            pane.classList.add("active");
+        } else {
+            pane.classList.remove("active");
+        }
+    });
+
+    // Auto-focus chat input if Copilot tab selected
+    if (tabId === "tab-copilot") {
+        chatInput.focus();
+    }
+}
+
+// --- TELEMETRY MODULE & CHARTS ---
 
 async function fetchTelemetry() {
     try {
-        // Fetch dashboard summary
         const response = await fetch(`${API_BASE}/monitoring/dashboard/summary`);
         const result = await response.json();
         
-        // If we get a response, the backend is definitely connected!
         setBackendConnected(true);
 
         if (result.success && result.data) {
             const data = result.data;
-            
-            // Calculate health metrics
             const totalRuns = parseInt(data.total_runs || 0);
             const failedRuns = parseInt(data.failed_runs || 0);
-            const successRate = totalRuns > 0 ? ((totalRuns - failedRuns) / totalRuns) * 100 : 100.0;
+            const successRuns = totalRuns - failedRuns;
+            const successRate = totalRuns > 0 ? (successRuns / totalRuns) * 100 : 100.0;
             
-            // Fetch stale tables & volume anomalies counts
+            // Stale tables count
             let staleCount = 0;
             try {
                 const freshnessRes = await fetch(`${API_BASE}/freshness/status`);
@@ -88,9 +143,10 @@ async function fetchTelemetry() {
                     ? freshnessData.data.filter(t => t.freshness_status === 'STALE').length 
                     : (freshnessData.data?.tables?.filter(t => t.freshness_status === 'STALE').length || 0);
             } catch (e) {
-                console.error("Freshness status fetch failed", e);
+                console.error("Freshness fetch failed", e);
             }
 
+            // Anomalies count
             let anomalyCount = 0;
             try {
                 const volumeRes = await fetch(`${API_BASE}/volume/status`);
@@ -99,55 +155,135 @@ async function fetchTelemetry() {
                     ? volumeData.data.filter(t => t.anomaly_status === 'ANOMALY').length
                     : (volumeData.data?.tables?.filter(t => t.anomaly_status === 'ANOMALY').length || 0);
             } catch (e) {
-                console.error("Volume status fetch failed", e);
+                console.error("Volume fetch failed", e);
             }
 
-            // Compute health score
-            const healthScore = Math.round((successRate * 0.5) + 30 + (staleCount === 0 ? 10 : 0) + (anomalyCount === 0 ? 10 : 0));
-            const boundedHealthScore = Math.min(100, Math.max(0, healthScore));
+            // Update UI widgets
+            successRateVal.textContent = `${successRate.toFixed(1)}%`;
+            staleTablesVal.textContent = staleCount;
+            volAnomaliesVal.textContent = anomalyCount;
+            totalRunsVal.textContent = totalRuns;
 
-            updateDashboardUI(boundedHealthScore, successRate, staleCount, anomalyCount, totalRuns);
-        } else {
-            // DB might be offline or empty but server is running
-            updateDashboardUI(0, 0, 0, 0, 0);
-            healthState.textContent = "DB ISSUE";
+            // Render Donut Chart
+            updateDonutChart(successRate, successRuns, failedRuns);
         }
     } catch (err) {
-        console.error("Telemetry fetch failed", err);
+        console.error("Failed to fetch telemetry overview", err);
         setBackendConnected(false);
     }
 }
 
-function updateDashboardUI(healthScore, successRate, staleCount, anomalyCount, totalRuns) {
-    // Update Ring percentage
-    healthPct.textContent = `${healthScore}%`;
+function updateDonutChart(successRate, successRuns, failedRuns) {
+    donutPct.textContent = `${Math.round(successRate)}%`;
+    donutSuccessCnt.textContent = successRuns;
+    donutFailedCnt.textContent = failedRuns;
+
+    const totalSegments = 219.9; // 2 * PI * r (r=35)
     
-    // Circumference = 2 * Math.PI * r = 251.2
-    const circumference = 251.2;
-    const offset = circumference - (healthScore / 100) * circumference;
-    healthRing.style.strokeDashoffset = offset;
+    // Success offset
+    const successOffset = totalSegments - (successRate / 100) * totalSegments;
+    donutSuccess.style.strokeDashoffset = successOffset;
 
-    // Health state coloring
-    if (healthScore >= 90) {
-        healthRing.style.stroke = "var(--success)";
-        healthState.className = "health-label success-theme";
-        healthState.textContent = "HEALTHY";
-    } else if (healthScore >= 70) {
-        healthRing.style.stroke = "var(--warning)";
-        healthState.className = "health-label alert-theme";
-        healthState.textContent = "WARNING";
-    } else {
-        healthRing.style.stroke = "var(--error)";
-        healthState.className = "health-label error-theme";
-        healthState.textContent = "CRITICAL";
-    }
-
-    // Telemetry values
-    successRateVal.textContent = `${successRate.toFixed(1)}%`;
-    staleTablesVal.textContent = staleCount;
-    volAnomaliesVal.textContent = anomalyCount;
-    totalRunsVal.textContent = totalRuns;
+    // Failed offset
+    const failedRate = 100 - successRate;
+    donutFailed.style.strokeDasharray = `${totalSegments}`;
+    donutFailed.style.strokeDashoffset = `${totalSegments - (failedRate / 100) * totalSegments}`;
+    
+    // Rotate the failed segment to start right after success
+    donutFailed.style.transform = `rotate(${(successRate / 100) * 360}deg)`;
+    donutFailed.style.transformOrigin = "50px 50px";
 }
+
+// --- PIPELINES SNAPSHOTS & LINEAGE ---
+
+async function fetchPipelineSnapshots() {
+    try {
+        const response = await fetch(`${API_BASE}/monitoring/dashboard/summary`);
+        const result = await response.json();
+        
+        pipelineSnapshots.innerHTML = "";
+
+        if (result.success && result.data && Array.isArray(result.data.pipelines)) {
+            const list = result.data.pipelines;
+            if (list.length === 0) {
+                pipelineSnapshots.innerHTML = `<div class="empty-state">No pipeline status configuration loaded</div>`;
+                return;
+            }
+
+            list.forEach(p => {
+                const total = parseInt(p.total_runs || 0);
+                const failed = parseInt(p.failed_runs || 0);
+                const success = total - failed;
+                const rate = total > 0 ? (success / total) * 100 : 100.0;
+                
+                let badgeClass = "rate-success";
+                if (rate < 50) badgeClass = "rate-error";
+                else if (rate < 90) badgeClass = "rate-warning";
+
+                const row = document.createElement("div");
+                row.className = "pipeline-snapshot-item animate-fade-in";
+                row.innerHTML = `
+                    <div class="pipeline-meta">
+                        <h4>${p.pipeline_name}</h4>
+                        <p>Last run: ${p.last_run_timestamp ? new Date(p.last_run_timestamp).toLocaleString() : 'N/A'}</p>
+                    </div>
+                    <div class="pipeline-runs-cnt">
+                        <span class="snapshot-val">${total}</span>
+                        <span class="snapshot-lbl">Total Runs</span>
+                    </div>
+                    <div class="pipeline-runs-cnt">
+                        <span class="snapshot-val" style="color: var(--success);">${success}</span>
+                        <span class="snapshot-lbl">Success</span>
+                    </div>
+                    <div class="pipeline-runs-cnt">
+                        <span class="snapshot-val" style="color: var(--error);">${failed}</span>
+                        <span class="snapshot-lbl">Failures</span>
+                    </div>
+                    <span class="pipeline-rate-badge ${badgeClass}">${rate.toFixed(1)}% Success</span>
+                `;
+                pipelineSnapshots.appendChild(row);
+            });
+        } else {
+            pipelineSnapshots.innerHTML = `<div class="empty-state">Unable to load pipeline metrics</div>`;
+        }
+    } catch (e) {
+        pipelineSnapshots.innerHTML = `<div class="empty-state" style="color: var(--error)">Failed to load pipelines list</div>`;
+    }
+}
+
+function renderLineageFlow() {
+    lineagePlaceholder.style.display = "none";
+    lineageMermaidFlow.className = "mermaid-target active animate-fade-in";
+
+    // Inject exact database dependency graph
+    lineageMermaidFlow.innerHTML = `
+flowchart LR
+    CUSTOMER[("CUSTOMER")] --> Customer_Orders_Pipeline[["Customer_Orders_Pipeline"]];
+    ORDERS[("ORDERS")] --> Customer_Orders_Pipeline;
+    Customer_Orders_Pipeline --> CUSTOMER_ORDERS[("CUSTOMER_ORDERS")];
+    ORDERS --> Sales_Report_Pipeline[["Sales_Report_Pipeline"]];
+    PRODUCT[("PRODUCT")] --> Sales_Report_Pipeline;
+    Sales_Report_Pipeline --> SALES_REPORT[("SALES_REPORT")];
+    
+    style CUSTOMER fill:#1E293B,stroke:#475569,stroke-width:2px;
+    style ORDERS fill:#1E293B,stroke:#475569,stroke-width:2px;
+    style PRODUCT fill:#1E293B,stroke:#475569,stroke-width:2px;
+    style CUSTOMER_ORDERS fill:#0F172A,stroke:#6366F1,stroke-width:2px;
+    style SALES_REPORT fill:#0F172A,stroke:#6366F1,stroke-width:2px;
+    style Customer_Orders_Pipeline fill:#1E1B4B,stroke:#8B5CF6,stroke-width:2px;
+    style Sales_Report_Pipeline fill:#1E1B4B,stroke:#8B5CF6,stroke-width:2px;
+    `;
+
+    try {
+        mermaid.run({
+            nodes: [lineageMermaidFlow]
+        });
+    } catch (err) {
+        console.error("Mermaid compilation failed", err);
+    }
+}
+
+// --- WEBHOOKS LIST ---
 
 async function fetchAlertReceivers() {
     try {
@@ -160,16 +296,14 @@ async function fetchAlertReceivers() {
         if (Array.isArray(receivers) && receivers.length > 0) {
             receivers.forEach(item => {
                 const urlObj = new URL(item.url);
-                const hostname = urlObj.hostname;
-                const pathEnd = urlObj.pathname.substring(urlObj.pathname.lastIndexOf('/') + 1);
-                const displayUrl = `${hostname}/.../${pathEnd}`;
+                const displayUrl = `${urlObj.hostname}/.../${urlObj.pathname.substring(urlObj.pathname.lastIndexOf('/') + 1)}`;
 
                 const row = document.createElement("div");
                 row.className = "alert-receiver-item animate-fade-in";
                 row.innerHTML = `
                     <div class="alert-receiver-info">
                         <span class="alert-receiver-name" title="${item.url}">${displayUrl}</span>
-                        <span class="alert-receiver-type">ID ${item.webhook_id} • Scope: ${item.event_type}</span>
+                        <span class="alert-receiver-type">ID ${item.webhook_id} • Target: ${item.event_type}</span>
                     </div>
                     <button class="btn btn-secondary btn-icon-only text-red-500" onclick="deleteWebhook(${item.webhook_id})" title="Delete webhook">
                         <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--error);"></i>
@@ -193,23 +327,10 @@ async function deleteWebhook(id) {
         const result = await response.json();
         if (result.success) {
             fetchAlertReceivers();
-            // Automatically add an assistant notification in chat
             appendSystemMessage(`Alert Webhook receiver ID ${id} was deleted successfully.`);
         }
     } catch (err) {
         alert("Failed to delete webhook receiver");
-    }
-}
-
-function setBackendConnected(isConnected) {
-    if (isConnected) {
-        apiStatusDot.className = "pulse-indicator healthy";
-        apiStatusText.textContent = "Backend Connected";
-    } else {
-        apiStatusDot.className = "pulse-indicator unhealthy";
-        apiStatusText.textContent = "Offline / Connection Error";
-        healthState.textContent = "OFFLINE";
-        healthRing.style.strokeDashoffset = 251.2;
     }
 }
 
@@ -237,29 +358,29 @@ async function sendMessage() {
     const typingIndicator = appendTypingIndicator();
 
     try {
-        // Post request to copilot agent API
         const response = await fetch(`${API_BASE}/agents/copilot`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: jsonPayload(text, conversationId)
+            body: JSON.stringify({
+                message: text,
+                conversation_id: conversationId || null
+            })
         });
 
         const result = await response.json();
         removeTypingIndicator(typingIndicator);
 
         if (result.success) {
-            // Save conversation ID session key
             if (!conversationId && result.conversation_id) {
                 conversationId = result.conversation_id;
                 localStorage.setItem("tusk_conversation_id", conversationId);
             }
-            
-            // Append assistant response to chat
             appendMessage(result.message, "assistant");
             
             // Refresh telemetry sidebar metrics if agents made database updates
             fetchTelemetry();
             fetchAlertReceivers();
+            fetchPipelineSnapshots();
         } else {
             appendMessage(`Error: ${result.message || 'Tusk encountered a server run error.'}`, "assistant");
         }
@@ -275,8 +396,6 @@ function appendMessage(text, sender) {
     msgBox.className = `message ${sender}-message animate-fade-in`;
     
     const avatar = isAssistant ? "bot" : "user";
-    
-    // Parse formatting natively
     const htmlContent = isAssistant ? formatMarkdown(text) : escapeHtml(text);
 
     msgBox.innerHTML = `
@@ -287,7 +406,6 @@ function appendMessage(text, sender) {
     chatMessages.appendChild(msgBox);
     lucide.createIcons();
 
-    // Render Mermaid diagrams inside the newly appended block
     if (isAssistant) {
         try {
             mermaid.run({
@@ -298,7 +416,6 @@ function appendMessage(text, sender) {
         }
     }
 
-    // Scroll chat list to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -347,7 +464,7 @@ function clearConversation() {
             <div class="message assistant-message animate-fade-in">
                 <div class="message-avatar"><i data-lucide="bot"></i></div>
                 <div class="message-content">
-                    <p>Thread context reset successfully. Ask me anything to start a new chat session!</p>
+                    <p>Hello Sasi! How can I help you today?</p>
                 </div>
             </div>
         `;
@@ -355,13 +472,14 @@ function clearConversation() {
     }
 }
 
-// --- UTILITIES / PARSERS ---
-
-function jsonPayload(message, convoId) {
-    return JSON.stringify({
-        message: message,
-        conversation_id: convoId || null
-    });
+function setBackendConnected(isConnected) {
+    if (isConnected) {
+        apiStatusDot.className = "pulse-indicator healthy";
+        apiStatusText.textContent = "Backend Connected";
+    } else {
+        apiStatusDot.className = "pulse-indicator unhealthy";
+        apiStatusText.textContent = "Offline / Connection Error";
+    }
 }
 
 function escapeHtml(text) {
@@ -374,7 +492,6 @@ function escapeHtml(text) {
 function formatMarkdown(text) {
     let html = text;
 
-    // 1. Render block code & Mermaid diagrams
     const codeBlockRegex = /```(mermaid|sql|bash|json|python)?\s*([\s\S]*?)```/g;
     html = html.replace(codeBlockRegex, (match, lang, code) => {
         code = code.trim();
@@ -384,35 +501,26 @@ function formatMarkdown(text) {
         return `<pre><code class="language-${lang || 'txt'}">${escapeHtml(code)}</code></pre>`;
     });
 
-    // Escape basic html tags outside pre/code wrappers by splitting
     const parts = html.split(/(<pre[\s\S]*?<\/pre>|<div class="mermaid">[\s\S]*?<\/div>)/);
     for (let i = 0; i < parts.length; i++) {
         if (!parts[i].startsWith('<pre') && !parts[i].startsWith('<div')) {
             let chunk = parts[i];
             
-            // Headers
             chunk = chunk.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
             chunk = chunk.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
             chunk = chunk.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
             
-            // Bold & Italics
             chunk = chunk.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             chunk = chunk.replace(/\*(.*?)\*/g, '<em>$1</em>');
             
-            // Inline code
             chunk = chunk.replace(/`(.*?)`/g, '<code>$1</code>');
             
-            // Unordered list items
             chunk = chunk.replace(/^\*\s+(.*?)$/gm, '<li>$1</li>');
             chunk = chunk.replace(/^-\s+(.*?)$/gm, '<li>$1</li>');
-            
-            // Ordered list items
             chunk = chunk.replace(/^\d+\.\s+(.*?)$/gm, '<li>$1</li>');
             
-            // Wrap sets of <li> inside lists
             chunk = chunk.replace(/(<li>.*?<\/li>)+/gs, (listMatch) => `<ul>${listMatch}</ul>`);
             
-            // Paragraph breaks (double newlines)
             chunk = chunk.replace(/\n\n/g, '</p><p>');
             chunk = chunk.replace(/\n/g, '<br>');
             
@@ -422,7 +530,6 @@ function formatMarkdown(text) {
 
     html = parts.join('');
     
-    // Ensure wraps in paragraph tags if not structured
     if (!html.startsWith('<h') && !html.startsWith('<p') && !html.startsWith('<pre') && !html.startsWith('<ul')) {
         html = `<p>${html}</p>`;
     }
