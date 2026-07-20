@@ -1,0 +1,23 @@
+# Python Bytecode and Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+
+# Sensitive Environment Configurations
+.env
+**/.env
+.env.*
+
+# Logs
+*.log
+**/logs/
+logs/
+
+# IDEs & System Files
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

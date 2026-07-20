@@ -1,0 +1,12 @@
+{
+    "pythonVersion": "3.11",
+    "pythonPath": "C:/Users/Sisindri/AppData/Local/Programs/Python/Python311/python.exe",
+    "extraPaths": [
+        "ai",
+        "monitoring_pipelines"
+    ],
+    "typeCheckingMode": "off",
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
+    "reportUndefinedVariable": "none"
+}
