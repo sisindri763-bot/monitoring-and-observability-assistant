@@ -64,26 +64,21 @@ def get_system_metrics():
     return monitoring_service.get_metrics()
 
 
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+
+# Mount static frontend assets
+frontend_dir = Path(_ROOT_PATH) / "frontend"
+app.mount("/ui", StaticFiles(directory=str(frontend_dir)), name="ui")
+
+
 # ---------------------------------
-# Root Endpoint
+# Root Endpoint (Redirect to Frontend)
 # ---------------------------------
 
 @app.get("/")
 def root():
-
-    return {
-        "success": True,
-        "message": "ETL Metadata Repository API is running",
-        "modules": [
-            "Monitoring",
-            "Freshness",
-            "Volume",
-            "Lineage",
-            "Alerts",
-            "Metrics",
-            "Tusk Copilot (Multi-Agent AI)"
-        ]
-    }
+    return RedirectResponse(url="/ui/index.html")
 
 
 # ---------------------------------
